@@ -20,10 +20,27 @@ jobs:
           pip install -r requirements.txt
       
       - name: Test with flake8
+        id: flake8
         run: |
           python -m flake8
           cd infra_project/
           python manage.py test
+      
+      - name: send notification OK
+        if: steps.flake8.outcome == 'success'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: ${{ github.workflow }} тесты пройдены! 
+      
+      - name: send notification ERROR
+        if: steps.flake8.outcome == 'failure'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: ${{ github.workflow }} тесты свалились!
 
   send_message:
     runs-on: ubuntu-latest
